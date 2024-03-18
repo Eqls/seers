@@ -8,6 +8,7 @@
 #include <sys/types.h>
 
 #define PORT 43594
+#define MAX_CONNS 10
 
 int main()
 {
@@ -28,7 +29,7 @@ int main()
         return 0;
     }
 
-    if (listen(sockfd, 5) == -1) {
+    if (listen(sockfd, MAX_CONNS) == -1) {
         printf("Socket listening failed.\n");
         return 0;
     };
