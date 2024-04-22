@@ -1,2 +1,2 @@
 default:
-	clang -std=clang src/main.cpp src/what.cpp -o exec
+	clang -std=c11 src/main.c -o exec
