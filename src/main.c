@@ -1,9 +1,9 @@
-#pragma clang diagnostic ignored "-Weverything"
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/poll.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 
@@ -36,18 +36,36 @@ int main()
 
     printf("Server listening on port %d.\n", PORT);
     socklen_t client_len;
+    int pfds_count = 0;
+    int fd_size = 5;
+    struct pollfd* pfds = malloc(sizeof *pfds * fd_size);
+
+    pfds[0].fd = sockfd;
+    pfds[0].events = POLLIN;
+    pfds_count++;
 
     while (true) {
-        client_len = sizeof(client_addr);
+        int poll_count = poll(pfds, pfds_count, -1);
 
-        int new_connfd = accept(sockfd, (struct sockaddr*)&client_addr, &client_len);
+        for (int i = 0; i < pfds_count; i++) {
+            if (pfds[i].revents & POLLIN) {
+                // If it's listener socket fd
+                if (pfds[i].fd == sockfd) {
+                    client_len = sizeof client_addr;
 
-        if (new_connfd == -1) {
-            printf("Server accept failed.\n");
-            return 0;
+                    int new_connfd = accept(sockfd, (struct sockaddr*)&client_addr, &client_len);
+
+                    if (new_connfd == -1) {
+                        printf("Server accept failed.\n");
+                        return 0;
+                    }
+
+                    printf("Someone connected!\n");
+                } else {
+                    printf("Reoccuring connection\n");
+                }
+            }
         }
-
-        printf("Someone connected!\n");
     }
 
     return 0;
